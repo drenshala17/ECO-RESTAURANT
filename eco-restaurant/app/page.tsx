@@ -1,193 +1,347 @@
 "use client";
 
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import Link from "next/link";
 
-type Role = {
+type Category = "Të gjitha" | "Antipasta" | "Pjata kryesore" | "Ëmbëlsira";
+
+type Dish = {
   name: string;
   description: string;
-  icon: "client" | "chef" | "owner";
-  accent: string;
-  href?: string;
-  registrationHref?: string;
+  price: string;
+  category: Exclude<Category, "Të gjitha">;
+  image: string;
+  imageAlt: string;
 };
 
-const roles: Role[] = [
+const categories: Category[] = [
+  "Të gjitha",
+  "Antipasta",
+  "Pjata kryesore",
+  "Ëmbëlsira",
+];
+
+const dishes: Dish[] = [
   {
-    name: "Klienti",
-    description: "Hyr si klient për të parë ushqimet dhe për të porositur.",
-    icon: "client",
-    accent: "bg-emerald-100 text-emerald-700",
-    href: "/klienti/kyc",
-    registrationHref: "/klienti/regjistrimi",
+    name: "Burrata me domate të pjekura",
+    description: "Burrata kremoze, domate të ëmbla dhe vaj borziloku.",
+    price: "12.50 €",
+    category: "Antipasta",
+    image:
+      "https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=900&q=85",
+    imageAlt: "Burrata me domate të freskëta",
   },
   {
-    name: "Kuzhinieri",
-    description: "Hyr në sistem për të menaxhuar porositë.",
-    icon: "chef",
-    accent: "bg-amber-100 text-amber-700",
+    name: "Karkaleca me agrume",
+    description: "Karkaleca të freskët, agrume dhe sallatë me kopër.",
+    price: "16.00 €",
+    category: "Antipasta",
+    image:
+      "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=900&q=85",
+    imageAlt: "Pjatë me karkaleca dhe agrume",
   },
   {
-    name: "Pronari",
-    description: "Hyr në sistem për të menaxhuar restorantin.",
-    icon: "owner",
-    accent: "bg-sky-100 text-sky-700",
+    name: "Fileto viçi me trumzë",
+    description: "Fileto e pjekur në perfeksion me salcë vere të kuqe.",
+    price: "28.00 €",
+    category: "Pjata kryesore",
+    image:
+      "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=900&q=85",
+    imageAlt: "Fileto viçi e servirur me perime",
+  },
+  {
+    name: "Risotto me kërpudha pylli",
+    description: "Oriz Carnaroli, kërpudha pylli dhe parmixhano i vjetëruar.",
+    price: "19.50 €",
+    category: "Pjata kryesore",
+    image:
+      "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=900&q=85",
+    imageAlt: "Risotto kremoz me kërpudha",
+  },
+  {
+    name: "Salmon me barishte",
+    description: "Salmon i egër, pure bizeleje dhe salcë me limon.",
+    price: "24.00 €",
+    category: "Pjata kryesore",
+    image:
+      "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=85",
+    imageAlt: "Fileto salmoni me garniturë",
+  },
+  {
+    name: "Tiramisu klasik",
+    description: "Krem mascarpone, kafe espresso dhe kakao e hidhur.",
+    price: "8.00 €",
+    category: "Ëmbëlsira",
+    image:
+      "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=900&q=85",
+    imageAlt: "Tiramisu i servirur në gotë",
   },
 ];
 
-function RoleIcon({ type }: { type: Role["icon"] }) {
-  const commonProps = {
-    fill: "none",
-    stroke: "currentColor",
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    strokeWidth: 1.8,
-  };
-
-  if (type === "chef") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="size-7">
-        <path {...commonProps} d="M7.5 10.5h9v9h-9zM5 10.5h14M9 10.5V8a3 3 0 0 1 6 0v2.5M12 5V3M8 5 6.5 3.5M16 5l1.5-1.5" />
-      </svg>
-    );
-  }
-
-  if (type === "owner") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="size-7">
-        <path {...commonProps} d="M4 20h16M6 20v-9l6-4 6 4v9M9 20v-5h6v5M9 10h.01M12 10h.01M15 10h.01" />
-      </svg>
-    );
-  }
-
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-7">
-      <path {...commonProps} d="M12 3.5c-4.7 0-8.5 3.2-8.5 7.2 0 2.3 1.3 4.3 3.4 5.6l-.8 3.2 3.2-1.6c.9.2 1.8.3 2.7.3 4.7 0 8.5-3.2 8.5-7.2S16.7 3.5 12 3.5Z" />
-      <path {...commonProps} d="M8.5 11h.01M12 11h.01M15.5 11h.01" />
-    </svg>
-  );
-}
-
 export default function Home() {
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category>("Të gjitha");
+  const [selectedDish, setSelectedDish] = useState<Dish | null>(null);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+
+  const visibleDishes =
+    selectedCategory === "Të gjitha"
+      ? dishes
+      : dishes.filter((dish) => dish.category === selectedCategory);
+
+  function handleOrder(dish: Dish) {
+    setSelectedDish(dish);
+    setAuthMode("login");
+  }
+
+  function handleDemoSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+  }
 
   return (
-    <main className="relative flex min-h-screen flex-1 items-center justify-center overflow-hidden px-5 py-10 sm:px-8 lg:px-12">
-      <div className="absolute -left-24 -top-24 size-72 rounded-full bg-emerald-200/30 blur-3xl" />
-      <div className="absolute -bottom-28 -right-20 size-80 rounded-full bg-amber-100/50 blur-3xl" />
-
-      <div className="relative z-10 w-full max-w-6xl">
-        <header className="mb-12 text-center sm:mb-14">
-          <div className="mb-7 inline-flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-2xl bg-emerald-700 text-lg font-bold text-white shadow-lg shadow-emerald-700/20">
+    <main className="min-h-screen bg-[#11100e] text-[#f5efe4]">
+      <header className="border-b border-[#c6a15b]/20 bg-[#11100e]/95">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
+          <Link href="/" className="flex items-center gap-3" aria-label="ECO-RESTAURANT">
+            <span className="flex size-10 items-center justify-center border border-[#c6a15b] text-lg font-semibold text-[#c6a15b]">
               E
             </span>
-            <span className="text-lg font-bold tracking-[0.18em] text-slate-800">
+            <span className="text-sm font-semibold tracking-[0.3em] text-[#f5efe4] sm:text-base">
               ECO-RESTAURANT
             </span>
-          </div>
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-emerald-700">
-            Mirë se vini
+          </Link>
+          <span className="hidden text-xs uppercase tracking-[0.25em] text-[#a9a39a] sm:block">
+            Kuzhinë e zgjedhur
+          </span>
+        </div>
+      </header>
+
+      <section className="relative overflow-hidden border-b border-[#c6a15b]/20">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(198,161,91,0.18),_transparent_40%),radial-gradient(circle_at_bottom_left,_rgba(198,161,91,0.08),_transparent_35%)]" />
+        <div className="relative mx-auto max-w-7xl px-5 pb-20 pt-24 sm:px-8 sm:pb-28 sm:pt-32 lg:px-12">
+          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.35em] text-[#c6a15b]">
+            Shije që mbetet
           </p>
-          <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-            Zgjidhni mënyrën tuaj të hyrjes
+          <h1 className="max-w-3xl text-5xl font-light leading-[1.05] tracking-tight text-[#f5efe4] sm:text-7xl">
+            Një përvojë e veçantë,
+            <span className="block text-[#c6a15b]">në çdo pjatë.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-500 sm:text-lg">
-            Një përvojë e thjeshtë dhe e këndshme për çdo pjesë të restorantit
-            tuaj.
+          <p className="mt-7 max-w-xl text-base leading-7 text-[#a9a39a] sm:text-lg">
+            Përbërës të zgjedhur, teknikë moderne dhe pasion për shijen.
+            Mirë se vini në tryezën tonë.
           </p>
-        </header>
-
-        <section
-          aria-label="Zgjidhni rolin tuaj"
-          className="grid gap-5 md:grid-cols-3"
-        >
-          {roles.map((role) => (
-            <RoleCard
-              key={role.name}
-              role={role}
-              onSelect={() => setSelectedRole(role.name)}
-            />
-          ))}
-        </section>
-
-        {selectedRole && (
-          <div
-            role="status"
-            className="mx-auto mt-8 max-w-xl rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-center text-sm text-emerald-800"
+          <a
+            href="#menuja"
+            className="mt-9 inline-flex items-center gap-3 border border-[#c6a15b] px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#c6a15b] transition hover:bg-[#c6a15b] hover:text-[#11100e]"
           >
-            Faqja për <strong>{selectedRole}</strong> do të jetë e disponueshme
-            së shpejti.
-          </div>
-        )}
+            Shiko menunë
+            <span aria-hidden="true">↓</span>
+          </a>
+        </div>
+      </section>
 
-        <footer className="mt-12 text-center text-sm text-slate-400">
-          Zgjedhja juaj e mirë, nga kuzhina te tavolina.
-        </footer>
-      </div>
+      <section id="menuja" className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:px-12">
+        <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.3em] text-[#c6a15b]">
+              Menuja jonë
+            </p>
+            <h2 className="text-3xl font-light tracking-tight text-[#f5efe4] sm:text-4xl">
+              Zgjedhje të kuruara
+            </h2>
+          </div>
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-label="Kategoritë e ushqimeve"
+          >
+            {categories.map((category) => {
+              const isSelected = selectedCategory === category;
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => setSelectedCategory(category)}
+                  className={`border px-4 py-2 text-xs font-medium transition ${
+                    isSelected
+                      ? "border-[#c6a15b] bg-[#c6a15b] text-[#11100e]"
+                      : "border-[#5d5549] text-[#a9a39a] hover:border-[#c6a15b] hover:text-[#c6a15b]"
+                  }`}
+                  aria-pressed={isSelected}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visibleDishes.map((dish) => (
+            <article
+              key={dish.name}
+              className="group flex min-h-40 overflow-hidden rounded-2xl border border-[#3b3731] bg-[#1a1815] transition hover:border-[#c6a15b]/70"
+            >
+              <div className="flex min-w-0 flex-1 flex-col justify-between p-4 sm:p-5">
+                <div>
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#c6a15b]">
+                    {dish.category}
+                  </span>
+                  <h3 className="mt-2 text-lg font-medium leading-tight text-[#f5efe4]">
+                    {dish.name}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#a9a39a]">
+                    {dish.description}
+                  </p>
+                </div>
+                <span className="mt-4 text-sm font-semibold text-[#c6a15b]">{dish.price}</span>
+                <button
+                  type="button"
+                  onClick={() => handleOrder(dish)}
+                  className="mt-4 w-full rounded-lg border border-[#c6a15b] px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#c6a15b] transition hover:bg-[#c6a15b] hover:text-[#11100e] focus:outline-none focus:ring-2 focus:ring-[#c6a15b] focus:ring-offset-2 focus:ring-offset-[#1a1815]"
+                  aria-label={`Porosit ${dish.name}`}
+                >
+                  Porosit
+                </button>
+              </div>
+              <div className="relative order-2 w-32 shrink-0 overflow-hidden bg-[#2a2722] sm:w-36">
+                <img
+                  src={dish.image}
+                  alt={dish.imageAlt}
+                  className="size-full object-cover transition duration-500 group-hover:scale-105"
+                />
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <footer className="border-t border-[#c6a15b]/20 px-5 py-8 sm:px-8 lg:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
+          <p className="text-xs tracking-wide text-[#6f6960]">
+            Përgatitur me kujdes. Shërbyer me pasion.
+          </p>
+          <Link
+            href="/staf/kyc"
+            className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#6f6960] transition hover:text-[#c6a15b]"
+          >
+            Kyçja e stafit
+          </Link>
+        </div>
+      </footer>
+
+      {selectedDish && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-sm sm:px-6"
+          role="presentation"
+          onClick={() => setSelectedDish(null)}
+        >
+          <section
+            className="relative my-auto w-full max-w-lg rounded-3xl border border-[#c6a15b]/40 bg-[#1a1815] p-6 shadow-2xl shadow-black/50 sm:p-9"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="order-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setSelectedDish(null)}
+              className="absolute right-5 top-5 flex size-9 items-center justify-center rounded-full border border-[#4b4439] text-lg text-[#a9a39a] transition hover:border-[#c6a15b] hover:text-[#c6a15b]"
+              aria-label="Mbyll dritaren"
+            >
+              ×
+            </button>
+
+            <div className="pr-10">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-[#c6a15b]">
+                Porosia juaj
+              </p>
+              <h2
+                id="order-modal-title"
+                className="mt-3 text-2xl font-light tracking-tight text-[#f5efe4] sm:text-3xl"
+              >
+                {selectedDish.name}
+              </h2>
+              <p className="mt-2 text-sm text-[#a9a39a]">
+                Kyçu ose krijo një llogari për të vazhduar.
+              </p>
+            </div>
+
+            <div className="mt-7 flex rounded-xl border border-[#4b4439] bg-[#11100e] p-1">
+              <button
+                type="button"
+                onClick={() => setAuthMode("login")}
+                className={`flex-1 rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${
+                  authMode === "login"
+                    ? "bg-[#c6a15b] text-[#11100e]"
+                    : "text-[#a9a39a] hover:text-[#c6a15b]"
+                }`}
+                aria-pressed={authMode === "login"}
+              >
+                Kyçu
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMode("register")}
+                className={`flex-1 rounded-lg px-3 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] transition ${
+                  authMode === "register"
+                    ? "bg-[#c6a15b] text-[#11100e]"
+                    : "text-[#a9a39a] hover:text-[#c6a15b]"
+                }`}
+                aria-pressed={authMode === "register"}
+              >
+                Regjistrohu
+              </button>
+            </div>
+
+            <form onSubmit={handleDemoSubmit} className="mt-7 space-y-4">
+              {authMode === "register" && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ModalField id="emri" label="Emri" />
+                  <ModalField id="mbiemri" label="Mbiemri" />
+                </div>
+              )}
+              <ModalField id="email" label="Email" type="email" />
+              <ModalField id="fjalekalimi" label="Fjalëkalimi" type="password" />
+              <button
+                type="submit"
+                className="w-full rounded-xl bg-[#c6a15b] px-5 py-3.5 text-sm font-semibold text-[#11100e] transition hover:bg-[#d8b976] focus:outline-none focus:ring-2 focus:ring-[#c6a15b] focus:ring-offset-2 focus:ring-offset-[#1a1815]"
+              >
+                {authMode === "login" ? "Kyçu" : "Regjistrohu"}
+              </button>
+            </form>
+
+            <p className="mt-5 text-center text-xs leading-5 text-[#6f6960]">
+              Ky funksionalitet do të aktivizohet së shpejti.
+            </p>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
 
-const cardClassName =
-  "group cursor-pointer rounded-3xl border border-slate-200/80 bg-white/90 p-7 shadow-[0_12px_40px_-20px_rgba(15,23,42,0.28)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_20px_45px_-20px_rgba(15,118,110,0.25)] focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2";
-
-function RoleCard({
-  role,
-  onSelect,
+function ModalField({
+  id,
+  label,
+  type = "text",
 }: {
-  role: Role;
-  onSelect: () => void;
+  id: string;
+  label: string;
+  type?: "text" | "email" | "password";
 }) {
-  const content = (
-    <>
-              <div className="flex items-start justify-between">
-                <div className={`flex size-14 items-center justify-center rounded-2xl ${role.accent}`}>
-                  <RoleIcon type={role.icon} />
-                </div>
-                <span className="text-2xl text-slate-300 transition group-hover:translate-x-1 group-hover:text-emerald-600">
-                  →
-                </span>
-              </div>
-              <h2 className="mt-7 text-2xl font-semibold text-slate-900">
-                {role.name}
-              </h2>
-              <p className="mt-3 min-h-14 text-[15px] leading-6 text-slate-500">
-                {role.description}
-              </p>
-              {role.href ? (
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
-                  <Link
-                    href={role.href}
-                    className="rounded-xl bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                  >
-                    Kyçu
-                  </Link>
-                  <Link
-                    href={role.registrationHref ?? "/klienti/regjistrimi"}
-                    className="rounded-xl border border-emerald-700 px-4 py-3 text-center text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                  >
-                    Regjistrohu
-                  </Link>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  className="mt-7 w-full rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onSelect();
-                  }}
-                >
-                  Kyçu
-                </button>
-              )}
-    </>
-  );
-
   return (
-    <article className={cardClassName} onClick={role.href ? undefined : onSelect}>
-      {content}
-    </article>
+    <div>
+      <label htmlFor={`modal-${id}`} className="mb-2 block text-sm font-medium text-[#d8d0c3]">
+        {label}
+      </label>
+      <input
+        id={`modal-${id}`}
+        name={id}
+        type={type}
+        required
+        className="w-full rounded-xl border border-[#4b4439] bg-[#11100e] px-4 py-3 text-sm text-[#f5efe4] outline-none transition placeholder:text-[#6f6960] focus:border-[#c6a15b] focus:ring-2 focus:ring-[#c6a15b]/20"
+      />
+    </div>
   );
 }
